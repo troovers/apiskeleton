@@ -9,7 +9,8 @@
         "symfony/dotenv": "4.2.*",
         "symfony/flex": "^1.1",
         "symfony/framework-bundle": "4.2.*",
-        "symfony/yaml": "4.2.*"
+        "symfony/yaml": "4.2.*",
+        "esites/apibundle": "dev-develop"
     },
     "config": {
         "preferred-install": {
@@ -45,6 +46,9 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
+        ],
+        "post-project-create-cmd": [
+            "Esites\\ApiBundle\\Scripts::postCreateProject"
         ]
     },
     "conflict": {
@@ -55,5 +59,14 @@
             "allow-contrib": false,
             "require": "4.2.*"
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../E-sites/ApiBundle",
+            "symlink": true
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
