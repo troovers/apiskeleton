@@ -54,16 +54,14 @@ prod-configure-parameters:
     - |
       ssh esites@$PROD_HOST \
       "
-      sed -i'' s#{{APP_ENV}}#$PROD_APP_ENV# $PROD_ROOT/next/.env.dist && \
-      sed -i'' s#{{DB_HOST}}#$PRD_DB_HOST# $PROD_ROOT/next/.env.dist && \
-      sed -i'' s#{{DB_NAME}}#$PRD_DB_NAME# $PROD_ROOT/next/.env.dist && \
-      sed -i'' s#{{DB_USER}}#$PRD_DB_USER# $PROD_ROOT/next/.env.dist && \
-      sed -i'' s#{{DB_PASS}}#$PRD_DB_PASSWORD# $PROD_ROOT/next/.env.dist && \
-      sed -i'' s#{{BASE_URL}}#$PROD_HOSTNAME# $PROD_ROOT/next/.env.dist && \
-      sed -i'' s#{{FROM_EMAIL}}#$PROD_FROM_EMAIL# $PROD_ROOT/next/.env.dist && \
-      sed -i'' s#{{FROM_NAME}}#$PROD_FROM_NAME# $PROD_ROOT/next/.env.dist && \
-      sed -i'' s#{{API_DOC_PASSWORD}}#$PROD_API_DOC_PASSWORD# $PROD_ROOT/next/.env.dist && \
-      cp $PROD_ROOT/next/.env.dist $PROD_ROOT/next/.env.local && \
+      sed -i'' s#{{APP_ENV}}#$PROD_APP_ENV# $PROD_ROOT/next/.env.local.template && \
+      sed -i'' s#{{DB_HOST}}#$PRD_DB_HOST# $PROD_ROOT/next/.env.local.template && \
+      sed -i'' s#{{DB_NAME}}#$PRD_DB_NAME# $PROD_ROOT/next/.env.local.template && \
+      sed -i'' s#{{DB_USER}}#$PRD_DB_USER# $PROD_ROOT/next/.env.local.template && \
+      sed -i'' s#{{DB_PASS}}#$PRD_DB_PASSWORD# $PROD_ROOT/next/.env.local.template && \
+      sed -i'' s#{{BASE_URL}}#$PROD_HOSTNAME# $PROD_ROOT/next/.env.local.template && \
+      sed -i'' s#{{API_DOC_PASSWORD}}#$PROD_API_DOC_PASSWORD# $PROD_ROOT/next/.env.local.template && \
+      cp $PROD_ROOT/next/.env.local.template $PROD_ROOT/next/.env.local && \
       cd $PROD_ROOT/next && composer dump-env prod
       "
 

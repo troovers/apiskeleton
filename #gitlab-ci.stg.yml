@@ -54,14 +54,14 @@ stg-configure-parameters:
     - |
       ssh esites@$STG_HOST \
       "
-      sed -i'' s#{{APP_ENV}}#$STG_APP_ENV# $STG_ROOT/next/.env.dist && \
-      sed -i'' s#{{DB_HOST}}#$STG_DB_HOST# $STG_ROOT/next/.env.dist && \
-      sed -i'' s#{{DB_NAME}}#$STG_DB_NAME# $STG_ROOT/next/.env.dist && \
-      sed -i'' s#{{DB_USER}}#$STG_DB_USER# $STG_ROOT/next/.env.dist && \
-      sed -i'' s#{{DB_PASS}}#$STG_DB_PASSWORD# $STG_ROOT/next/.env.dist && \
-      sed -i'' s#{{BASE_URL}}#$STG_HOSTNAME# $STG_ROOT/next/.env.dist && \
-      sed -i'' s#{{API_DOC_PASSWORD}}#$STG_API_DOC_PASSWORD# $STG_ROOT/next/.env.dist && \
-      cp $STG_ROOT/next/.env.dist $STG_ROOT/next/.env.local
+      sed -i'' s#{{APP_ENV}}#$STG_APP_ENV# $STG_ROOT/next/.env.local.template && \
+      sed -i'' s#{{DB_HOST}}#$STG_DB_HOST# $STG_ROOT/next/.env.local.template && \
+      sed -i'' s#{{DB_NAME}}#$STG_DB_NAME# $STG_ROOT/next/.env.local.template && \
+      sed -i'' s#{{DB_USER}}#$STG_DB_USER# $STG_ROOT/next/.env.local.template && \
+      sed -i'' s#{{DB_PASS}}#$STG_DB_PASSWORD# $STG_ROOT/next/.env.local.template && \
+      sed -i'' s#{{BASE_URL}}#$STG_HOSTNAME# $STG_ROOT/next/.env.local.template && \
+      sed -i'' s#{{API_DOC_PASSWORD}}#$STG_API_DOC_PASSWORD# $STG_ROOT/next/.env.local.template && \
+      cp $STG_ROOT/next/.env.template $STG_ROOT/next/.env.local
       "
 
 stg-pre-publish:

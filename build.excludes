@@ -1,0 +1,6 @@
+/.idea/
+.git/
+.gitignore
+/build.*
+/composer.*
+tests/
