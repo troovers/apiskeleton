@@ -1,0 +1,66 @@
+---
+stages:
+  - build
+  - create-artifact
+  - prepare-directories
+  - deploy
+  - configure
+  - pre-publish
+  - publish
+
+variables:
+  # Prod variables
+  PROD_HOST: null
+  PROD_ROOT: null
+  PROD_HOSTNAME: null
+
+  # Staging variables
+  STG_HOST: null
+  STG_ROOT: null
+  STG_HOSTNAME: null
+
+  STG_APP_ENV: "staging"
+  PROD_APP_ENV: "prod"
+
+  # Database credentials
+  STG_DB_PORT: "null"
+  PROD_DB_PORT: "null"
+
+composer-install:
+  stage: build
+  only:
+    - develop
+    - master
+  artifacts:
+    paths:
+      - vendor
+    expire_in: "15 min"
+  tags:
+    - "php7.2"
+  variables:
+    SYMFONY_ENV: prod
+  script:
+    - "composer install --no-dev --no-interaction --ignore-platform-reqs --no-scripts"
+    - "composer dump-autoload -o"
+
+create-artifact:
+  stage: create-artifact
+  only:
+    - develop
+    - master
+  dependencies:
+    - composer-install
+  artifacts:
+    paths:
+      - .build/
+    expire_in: "6 months"
+  tags:
+    - "php7.2"
+  script:
+    - "rm -rf .build"
+    - "rsync -hvzPr --exclude-from 'build.excludes' . .build"
+
+include:
+  - '.gitlab-ci.stg.yml'
+  - '.gitlab-ci.prod.yml'
+

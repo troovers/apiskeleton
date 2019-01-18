@@ -1,0 +1,108 @@
+---
+stg-prepare-directories:
+  stage: prepare-directories
+  only:
+    - develop
+  tags:
+    - "php7.2"
+  script:
+    - |
+        ssh esites@$STG_HOST \
+        "
+        mkdir -p $STG_ROOT/{current,next,shared} && \
+        mkdir -p $STG_ROOT/shared/{logs}
+        "
+
+stg-deploy-artifact:
+  stage: deploy
+  only:
+    - develop
+  dependencies:
+    - stg-prepare-directories
+    - create-artifact
+  tags:
+    - "php7.2"
+  script:
+    - "ssh esites@$STG_HOST \"rm -rf $STG_ROOT/next && mkdir -p $STG_ROOT/next\""
+    - "rsync -a --info=progress2 --chmod=Do=rx,Dug=rwx,Fug=rw,Fo=r .build/ esites@$STG_HOST:$STG_ROOT/next/"
+
+stg-configure-symlinks:
+  stage: configure
+  only:
+    - develop
+  dependencies:
+    - stg-deploy-artifact
+  tags:
+    - "php7.2"
+  script:
+    - |
+        ssh esites@$STG_HOST \
+        "
+        cd $STG_ROOT/next && \
+        ln -s $STG_ROOT/shared/logs var/logs
+        "
+
+stg-configure-parameters:
+  stage: configure
+  only:
+    - develop
+  dependencies:
+    - stg-deploy-artifact
+  tags:
+    - "php7.2"
+  script:
+    - |
+      ssh esites@$STG_HOST \
+      "
+      sed -i'' s#{{APP_ENV}}#$STG_APP_ENV# $STG_ROOT/next/.env.dist && \
+      sed -i'' s#{{DB_HOST}}#$STG_DB_HOST# $STG_ROOT/next/.env.dist && \
+      sed -i'' s#{{DB_NAME}}#$STG_DB_NAME# $STG_ROOT/next/.env.dist && \
+      sed -i'' s#{{DB_USER}}#$STG_DB_USER# $STG_ROOT/next/.env.dist && \
+      sed -i'' s#{{DB_PASS}}#$STG_DB_PASSWORD# $STG_ROOT/next/.env.dist && \
+      sed -i'' s#{{BASE_URL}}#$STG_HOSTNAME# $STG_ROOT/next/.env.dist && \
+      sed -i'' s#{{API_DOC_PASSWORD}}#$STG_API_DOC_PASSWORD# $STG_ROOT/next/.env.dist && \
+      cp $STG_ROOT/next/.env.dist $STG_ROOT/next/.env.local
+      "
+
+stg-pre-publish:
+  stage: pre-publish
+  only:
+    - develop
+  dependencies:
+    - stg-configure-parameters
+  tags:
+    - "php7.2"
+  script:
+    - |
+      ssh esites@$STG_HOST \
+      "
+      cd $STG_ROOT/next \
+      && php bin/console doctrine:cache:clear-query --env=staging \
+      && php bin/console doctrine:cache:clear-metadata --env=staging \
+      && php bin/console doctrine:schema:update --force --no-debug --env=staging \
+      && php bin/console cache:clear --env=staging \
+      && php bin/console assets:install --env=staging
+      "
+
+stg-publish:
+  stage: publish
+  environment:
+    name: staging
+    url: https://$STG_HOSTNAME
+  only:
+    - develop
+  dependencies:
+    - stg-deploy-artifact
+    - stg-configure-symlinks
+    - stg-pre-publish
+  tags:
+    - "php7.2"
+  script:
+    - |
+        ssh esites@$STG_HOST \
+        "
+        cd $STG_ROOT && \
+        rm -rf previous && \
+        mv -f current previous && \
+        mv -f next current
+        "

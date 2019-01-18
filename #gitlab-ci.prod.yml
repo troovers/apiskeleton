@@ -1,0 +1,111 @@
+---
+prod-prepare-directories:
+  stage: prepare-directories
+  only:
+    - master
+  tags:
+    - "php7.2"
+  script:
+    - |
+        ssh esites@$PROD_HOST \
+        "
+        mkdir -p $PROD_ROOT/{current,next,shared} && \
+        mkdir -p $PROD_ROOT/shared/{logs}
+        "
+
+prod-deploy-artifact:
+  stage: deploy
+  only:
+    - master
+  dependencies:
+    - prod-prepare-directories
+    - create-artifact
+  tags:
+    - "php7.2"
+  script:
+    - "ssh esites@$PROD_HOST \"rm -rf $PROD_ROOT/next && mkdir -p $PROD_ROOT/next\""
+    - "rsync -a --info=progress2 --chmod=Do=rx,Dug=rwx,Fug=rw,Fo=r .build/ esites@$PROD_HOST:$PROD_ROOT/next/"
+
+prod-configure-symlinks:
+  stage: configure
+  only:
+    - master
+  dependencies:
+    - prod-deploy-artifact
+  tags:
+    - "php7.2"
+  script:
+    - |
+        ssh esites@$PROD_HOST \
+        "
+        cd $PROD_ROOT/next && \
+        ln -s $PROD_ROOT/shared/logs var/logs
+        "
+
+prod-configure-parameters:
+  stage: configure
+  only:
+    - master
+  dependencies:
+    - prod-deploy-artifact
+  tags:
+    - "php7.2"
+  script:
+    - |
+      ssh esites@$PROD_HOST \
+      "
+      sed -i'' s#{{APP_ENV}}#$PROD_APP_ENV# $PROD_ROOT/next/.env.dist && \
+      sed -i'' s#{{DB_HOST}}#$PRD_DB_HOST# $PROD_ROOT/next/.env.dist && \
+      sed -i'' s#{{DB_NAME}}#$PRD_DB_NAME# $PROD_ROOT/next/.env.dist && \
+      sed -i'' s#{{DB_USER}}#$PRD_DB_USER# $PROD_ROOT/next/.env.dist && \
+      sed -i'' s#{{DB_PASS}}#$PRD_DB_PASSWORD# $PROD_ROOT/next/.env.dist && \
+      sed -i'' s#{{BASE_URL}}#$PROD_HOSTNAME# $PROD_ROOT/next/.env.dist && \
+      sed -i'' s#{{FROM_EMAIL}}#$PROD_FROM_EMAIL# $PROD_ROOT/next/.env.dist && \
+      sed -i'' s#{{FROM_NAME}}#$PROD_FROM_NAME# $PROD_ROOT/next/.env.dist && \
+      sed -i'' s#{{API_DOC_PASSWORD}}#$PROD_API_DOC_PASSWORD# $PROD_ROOT/next/.env.dist && \
+      cp $PROD_ROOT/next/.env.dist $PROD_ROOT/next/.env.local && \
+      cd $PROD_ROOT/next && composer dump-env prod
+      "
+
+prod-pre-publish:
+  stage: pre-publish
+  only:
+    - master
+  dependencies:
+    - prod-configure-parameters
+  tags:
+    - "php7.2"
+  script:
+    - |
+      ssh esites@$PROD_HOST \
+      "
+      cd $PROD_ROOT/next \
+      && php bin/console doctrine:cache:clear-query --env=prod \
+      && php bin/console doctrine:cache:clear-metadata --env=prod \
+      && php bin/console doctrine:schema:update --force --no-debug --env=prod \
+      && php bin/console cache:clear --env=prod \
+      && php bin/console assets:install --env=prod
+      "
+
+prod-publish:
+  stage: publish
+  environment:
+    name: staging
+    url: https://$PROD_HOSTNAME
+  only:
+    - master
+  dependencies:
+    - prod-deploy-artifact
+    - prod-configure-symlinks
+    - prod-pre-publish
+  tags:
+    - "php7.2"
+  script:
+    - |
+        ssh esites@$PROD_HOST \
+        "
+        cd $PROD_ROOT && \
+        rm -rf previous && \
+        mv -f current previous && \
+        mv -f next current
+        "
