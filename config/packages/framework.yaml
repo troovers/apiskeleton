@@ -6,7 +6,7 @@ framework:
 
 #    form: { enabled: true }
 
-#    templating:
+    templating:
 #        engines: ['twig']
 
     # Enables session support. Note that the session will ONLY be started if you read or write from it.
