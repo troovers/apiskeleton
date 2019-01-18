@@ -28,17 +28,17 @@ class Scripts
 	private static function copyEnvironmentVariables(string $rootDir): void
 	{
 		// Copy the .env.dist file to a .env file
-		copy($rootDir . '/.env.dist', $rootDir . '/.env');
-		copy($rootDir . '/.env.local.dist', $rootDir . '/.env.local');
+		copy($rootDir . '/.env.template', $rootDir . '/.env');
+		copy($rootDir . '/.env.local.template', $rootDir . '/.env.local');
 
 		$env = file_get_contents($rootDir . '/.env');
-		str_replace([
+		$env = str_replace([
 			'{{APP_ENV}}',
 			'{{APP_SECRET}}',
 			'{{BASE_URL}}',
 		], [
 			'dev',
-			random_bytes(32),
+			bin2hex(random_bytes(16)),
 			'project.test'
 		], $env);
 
