@@ -49,7 +49,7 @@
             "@auto-scripts"
         ],
         "post-create-project-cmd": [
-            "Esites\\ApiBundle\\Scripts::postCreateProject"
+            "App\\Scripts::postCreateProject"
         ]
     },
     "conflict": {
