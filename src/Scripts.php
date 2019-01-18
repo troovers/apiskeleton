@@ -12,8 +12,6 @@ class Scripts
 	 */
 	public static function postCreateProject(Event $event): void
 	{
-		$vendorDirectory = $event->getComposer()->getConfig()->get('vendor-dir');
-
-		var_dump($vendorDirectory);
+		\Esites\ApiBundle\Scripts::postCreateProject($event);
 	}
 }
