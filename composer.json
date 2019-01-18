@@ -48,7 +48,7 @@
         "post-update-cmd": [
             "@auto-scripts"
         ],
-        "post-project-create-cmd": [
+        "post-create-project-cmd": [
             "Esites\\ApiBundle\\Scripts::postCreateProject"
         ]
     },
