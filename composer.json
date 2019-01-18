@@ -11,7 +11,7 @@
         "symfony/flex": "^1.1",
         "symfony/framework-bundle": "4.2.*",
         "symfony/yaml": "4.2.*",
-        "esites/apibundle": "^0.1"
+        "esites/apibundle": "dev-develop"
     },
     "config": {
         "preferred-install": {
